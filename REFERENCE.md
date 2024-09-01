@@ -12,7 +12,7 @@ in this file. All operations in input files are assumed to be over
 real numbers. FPTaylor models floating-point arithmetic with rounding
 operations. The basic analysis which FPTaylor performs is the
 following. Suppose the input file contains an expression `expr`
-containing some variables (for simplicity, assume that is depends on
+containing some variables (for simplicity, assume that it depends on
 one variable `x`) and some rounding operations. FPTaylor constructs
 another expression `expr'` without rounding operations and estimates
 the maximum value of the difference
@@ -233,7 +233,7 @@ It is equivalent to
 
 ### Constraints
 
-Each variable have lower and upper bounds. Additional constraints can
+Each variable has lower and upper bounds. Additional constraints can
 be defined in the following section
 
     Constraints
@@ -349,7 +349,7 @@ if `type` is `up`, `down`, or `zero`. There is one special value for
 FPTaylor also can work with an improved rounded model where the
 expression `f e` is replaced with `p2(f)e`. The function `p2` is a
 special function which improves the result of the rounding
-approximation. In general, the imporved rounding model leads to more
+approximation. In general, the improved rounding model leads to more
 complicated problems for FPTaylor to solve. It can be turned on with a
 special option.
 
@@ -456,7 +456,7 @@ error.
 
 Possible values: `true`, `false`.
 
-Turns on or off the impoved rounding model. The improved rounding
+Turns on or off the improved rounding model. The improved rounding
 model yields better error estimation results but it also produces
 harder problems for optimization backends to solve. It may be not
 supported by some optimization backends.
