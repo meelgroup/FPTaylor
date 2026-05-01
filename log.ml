@@ -22,7 +22,7 @@ let close () =
   match !log_out with
   | None -> ()
   | Some c ->
-     Pervasives.close_out c;
+     close_out c;
      log_out := None;
      log_fmt := None
               
@@ -38,7 +38,7 @@ let open_log ?(base_dir = "log") fname =
   try
     let base_log_dir = Lib.get_dir base_dir in
     let log_name = Filename.concat base_log_dir fname in
-    let c = Pervasives.open_out log_name in
+    let c = open_out log_name in
     log_out := Some c;
     log_fmt := Some (formatter_of_out_channel c)
   with Failure str ->

@@ -139,14 +139,14 @@ let rec concat_env_paths paths =
 let load_and_close_channel do_close ic = 
   let rec lf ichan a = 
     try
-      lf ic (Pervasives.input_line ic :: a)
+      lf ic (input_line ic :: a)
     with End_of_file -> a in
   let rs = lf ic [] in
-  if do_close then Pervasives.close_in ic;
+  if do_close then close_in ic;
   List.rev rs
 
-let load_file filename = 
-  let ic = Pervasives.open_in filename in
+let load_file filename =
+  let ic = open_in filename in
   load_and_close_channel true ic
 
 let run_cmd cmd =

@@ -1,0 +1,16 @@
+Variables
+  real u in [0.000001, 0.49];
+
+Definitions
+  lambda = 1024,
+  pi = 3.14159265358979323846,
+  c = lambda + 0.445,
+  b = 0.931 + 2.53 * sqrt(lambda),
+  a = -0.059 + 0.02483 * b,
+  alpha = 1.1239 + 1.1328 / (b - 3.4),
+  K = ((2 * a) / (0.5 - abs(u)) + b) * u + c,
+  lr rnd64= -lambda + K * log(lambda) - K * log(K) + K
+            - 0.5 * log(2 * pi * K) - log(u) - log(alpha);
+
+Expressions
+  lr_stirling = lr;
