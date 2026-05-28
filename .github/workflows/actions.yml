@@ -36,7 +36,7 @@ jobs:
     - name: Download and build gelpia
       if: startsWith(matrix.os, 'ubuntu')
       run: |
-        git clone https://github.com/soarlab/gelpia.git
+        git clone https://github.com/meelgroup/gelpia.git
         cd gelpia
         git checkout develop
         make requirements
