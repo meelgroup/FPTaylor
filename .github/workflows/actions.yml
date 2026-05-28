@@ -4,37 +4,41 @@ on: [push]
 
 jobs:
   linux:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        ocaml: [4.03.0, 4.09.0, 4.11.1]
+        ocaml: [4.11.2, 4.14.2]
+        python: ['3.7', '3.9', '3.11']
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Setup opam and OCaml
-      uses: avsm/setup-ocaml@v1
+      uses: ocaml/setup-ocaml@v2
       with:
-        ocaml-version: ${{ matrix.ocaml }}
+        ocaml-compiler: ${{ matrix.ocaml }}
     - name: Install num
       if: ${{ matrix.ocaml >= '4.06' }}
       run: opam install -y num
-    - name: Set up Python 3.7 for tests (and gelpia)
-      uses: actions/setup-python@v1
+    - name: Set up Python for tests (and gelpia)
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: ${{ matrix.python }}
     - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip setuptools wheel
+        if [ "${{ matrix.python }}" = "3.7" ]; then
+          python -m pip install --upgrade "pip<24.1" "setuptools<69" wheel
+        else
+          python -m pip install --upgrade pip setuptools wheel
+        fi
         pip install pyyaml
     - name: Install gelpia dependencies
-      if: startsWith(matrix.os, 'ubuntu')
       run: |
         pip install sly
         sudo apt install flex bison wget
     - name: Download and build gelpia
-      if: startsWith(matrix.os, 'ubuntu')
+      env:
+        CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
       run: |
         git clone https://github.com/meelgroup/gelpia.git
         cd gelpia
@@ -42,16 +46,15 @@ jobs:
         make requirements
         make
     - name: Build FPTaylor
-      run: make
+      run: opam exec -- make
     - name: Run basic tests
       run: |
         grep opt -C 3 default.cfg
-        make test
+        opam exec -- make test
     - name: Run basic tests with gelpia
-      if: startsWith(matrix.os, 'ubuntu')
       run: |
         sed -i "s|^opt = bb|opt = gelpia|g" default.cfg
-        make test
+        opam exec -- make test
     - name: Regression tests
       run: |
         cd scripts
