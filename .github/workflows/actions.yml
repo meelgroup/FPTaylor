@@ -39,11 +39,17 @@ jobs:
     - name: Download and build gelpia
       env:
         CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+        CARGO_NET_RETRY: "10"
       run: |
         git clone https://github.com/meelgroup/gelpia.git
         cd gelpia
         git checkout develop
         make requirements
+        # requirements/build.sh installs Rust 1.37 (2019) which uses the slow
+        # git-based crates.io index and times out in CI; replace with the
+        # runner's modern cargo which supports the sparse protocol.
+        ln -sf "$(which cargo)" requirements/bin/cargo
+        ln -sf "$(which rustc)" requirements/bin/rustc
         make
     - name: Build FPTaylor
       run: opam exec -- make
