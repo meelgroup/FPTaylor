@@ -27,14 +27,28 @@ let gen_bb_opt_code (pars : Opt_common.opt_pars) max_only fmt =
     p "open Opt_func";
     p "" in
 
-  let tail_opt0 () =
+  let tail_opt0 var_names var_bounds =
+    let split_mode =
+      match Config.get_string_option "bb-split" with
+      | "midpoint" -> "midpoint"
+      | "geometric" -> "geometric"
+      | mode -> failwith (Format.sprintf "Unknown bb split mode: %s" mode) in
+    let geometric_ratio_tol = Config.get_float_option "bb-geometric-ratio-tol" in
+    if geometric_ratio_tol <= 1.0 then
+      failwith "bb-geometric-ratio-tol must be greater than 1";
+    let x_tols =
+      Opt_common.x_tols pars var_names (Array.of_list var_bounds) in
+    let x_tols_str =
+      x_tols |> Array.to_list |> List.map (Format.sprintf "%.20e")
+      |> String.concat "; " in
     p "";
     p "let _ =";
-    p (Format.sprintf "  let x_tol = size_max_X start_interval *. %e +. %e in"
-                      pars.x_rel_tol pars.x_abs_tol);
+    p (Format.sprintf "  let x_tols = [|%s|] in" x_tols_str);
+    p (Format.sprintf "  let split_mode = \"%s\" in" split_mode);
+    p (Format.sprintf "  let geometric_ratio_tol = %e in" geometric_ratio_tol);
     p (Format.sprintf 
-     "  let upper_bound, lower_bound, c = Opt0.opt f_X start_interval x_tol (%e) (%e) (%d) in" 
-     pars.f_rel_tol pars.f_abs_tol pars.max_iters);
+	     "  let upper_bound, lower_bound, c = Opt0.opt_with_x_tols ~split_mode ~geometric_ratio_tol f_X start_interval x_tols (%e) (%e) (%d) in" 
+	     pars.f_rel_tol pars.f_abs_tol pars.max_iters);
     p "  let () = Printf.printf \"iter_max = %d\\n\" c in";
     p "  let () = Printf.printf \"max = %0.20e\\n\" upper_bound in";
     p "  let () = Printf.printf \"lower_max = %0.20e\\n\" lower_bound in";
@@ -47,8 +61,8 @@ let gen_bb_opt_code (pars : Opt_common.opt_pars) max_only fmt =
     else
       begin
         p (Format.sprintf 
-         "  let upper_bound, lower_bound, c = Opt0.opt (fun x -> ~-$ (f_X x)) start_interval x_tol (%e) (%e) (%d) in" 
-         pars.f_rel_tol pars.f_abs_tol pars.max_iters);
+	         "  let upper_bound, lower_bound, c = Opt0.opt_with_x_tols ~split_mode ~geometric_ratio_tol (fun x -> ~-$ (f_X x)) start_interval x_tols (%e) (%e) (%d) in" 
+	         pars.f_rel_tol pars.f_abs_tol pars.max_iters);
         p "  let () = Printf.printf \"iter_min = %d\\n\" c in";
         p "  let () = Printf.printf \"min = %0.20e\\n\" (-. upper_bound) in";
         p "  let () = Printf.printf \"lower_min = %0.20e\\n\" (-. lower_bound) in";
@@ -100,7 +114,7 @@ let gen_bb_opt_code (pars : Opt_common.opt_pars) max_only fmt =
     start_interval var_bounds;
     expr var_names e;
     match Config.get_string_option "bb-alg" with 
-    | "opt0" -> tail_opt0()
+    | "opt0" -> tail_opt0 var_names var_bounds
     | alg -> failwith (Format.sprintf "Unknown bb algorithm: %s" alg)
  
 let counter = ref 0

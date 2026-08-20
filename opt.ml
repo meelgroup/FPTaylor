@@ -15,11 +15,17 @@ open Opt_common
 
 let select_opt (pars : Opt_common.opt_pars) (cs : constraints) expr =
   let vars = vars_in_expr expr in
-  let w = 10. *. pars.x_abs_tol in
-  let active = vars 
-    |> List.map cs.var_interval
-    |> List.filter (fun v -> v.Interval.high -. v.Interval.low > w)
-    |> List.length in
+  let bounds = List.map cs.var_interval vars in
+  let x_tols = Opt_common.x_tols pars vars (Array.of_list bounds) in
+  let rec count_active i = function
+    | [] -> 0
+    | v :: rest ->
+      let rest_count = count_active (i + 1) rest in
+      if v.Interval.high -. v.Interval.low > 10. *. x_tols.(i) then
+        rest_count + 1
+      else
+        rest_count in
+  let active = count_active 0 bounds in
   let opt = if active > 2 then "bb" else "bb-eval" in
   Log.report `Info "Selected optimization method: %s" opt;
   opt

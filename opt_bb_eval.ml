@@ -108,19 +108,21 @@ let min_max_expr (pars : Opt_common.opt_pars) max_only (cs : constraints) e =
   let start_interval = var_names
     |> List.map cs.var_interval
     |> Array.of_list in
-  let x_tol = size_max_X start_interval *. pars.x_rel_tol +. pars.x_abs_tol in
+  let x_tols = Opt_common.x_tols pars var_names start_interval in
   let h_vars = Hashtbl.create 8 in
   var_names |> List.iteri (fun i v -> Hashtbl.add h_vars v i);
   let es' = e |> expr_ref_list_of_expr |> List.map (expr'_of_expr (Hashtbl.find h_vars)) in
   let refs = Array.make (List.length es' - 1) Interval.zero_I in
   let f arr = eval_expr'_list refs arr 0 es' in
   let fmax, lower_max, iter_max = 
-    Opt0.opt f start_interval x_tol pars.f_rel_tol pars.f_abs_tol pars.max_iters in
+    Opt0.opt_with_x_tols f start_interval x_tols
+      pars.f_rel_tol pars.f_abs_tol pars.max_iters in
   let fmin, lower_min, iter_min =
     if max_only then 0., 0., 0
     else
       let f_min arr = ~-$ (eval_expr'_list refs arr 0 es') in
-      let fm, lm, i = Opt0.opt f_min start_interval x_tol pars.f_rel_tol pars.f_abs_tol pars.max_iters in
+      let fm, lm, i = Opt0.opt_with_x_tols f_min start_interval x_tols
+        pars.f_rel_tol pars.f_abs_tol pars.max_iters in
       -.fm, -.lm, i in
   let rmin = {
     result = fmin;
