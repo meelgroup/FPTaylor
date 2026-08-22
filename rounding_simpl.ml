@@ -226,6 +226,16 @@ let check_expr vars =
             else
               Func.atanh_I x
           | Op_floor_power2 -> Func.floor_power2_I x
+          | Op_lgamma ->
+            if x.low <= 0.0 then
+              raise (Exceptional_operation (e, "lgamma of a non-positive number"))
+            else
+              Func.lgamma_I x
+          | Op_digamma ->
+            if x.low <= 0.0 then
+              raise (Exceptional_operation (e, "digamma of a non-positive number"))
+            else
+              Func.digamma_I x
         end
       | Bin_op (op, arg1, arg2) ->
         begin

@@ -597,6 +597,22 @@ let atanh_form =
     mk_div e v1_0 in
   uop_form "atanh_form" f_high mk_v0 mk_v1
 
+(* lgamma:
+   f' = digamma, f'' = trigamma.
+   trigamma is monotonic (decreasing) on (0, infinity), so Func.trigamma_I
+   gives a tight rigorous enclosure of trigamma over the interval xi;
+   0.5 * (sup |trigamma(xi)|) bounds the Lagrange remainder term, exactly as
+   the other uop_form-based Taylor forms do with their own second
+   derivatives (e.g. exp_form, sin_form above). *)
+let lgamma_form =
+  let f_high x0_int s1 =
+    let xi = x0_int +$ s1 in
+    let d = Func.trigamma_I xi in
+    0.5 *^ (abs_I d).high in
+  let mk_v0 v0 = mk_lgamma v0 in
+  let mk_v1 v0 e = mk_mul (mk_digamma v0) e in
+  uop_form "lgamma_form" f_high mk_v0 mk_v1
+
 (* absolute value *)
 (* |x + e| = |x| + abs_err(t, x) * e where
    t is an upper bound of |e| and
@@ -736,7 +752,8 @@ let build_form (cs : constraints) =
           | Op_asinh -> asinh_form cs arg_form
           | Op_acosh -> acosh_form cs arg_form
           | Op_atanh -> atanh_form cs arg_form
-          | _ -> failwith 
+          | Op_lgamma -> lgamma_form cs arg_form
+          | _ -> failwith
                   ("build_form: unsupported unary operation " ^ u_op_name op)
         end
       | Bin_op (op, arg1, arg2) ->

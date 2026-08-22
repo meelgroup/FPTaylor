@@ -95,6 +95,8 @@ module InfoPrinter : PrinterType = struct
         | Op_acosh -> fprintf fmt "acosh(%a)" print arg
         | Op_atanh -> fprintf fmt "atanh(%a)" print arg
         | Op_floor_power2 -> fprintf fmt "floor_power2(%a)" print arg
+        | Op_lgamma -> fprintf fmt "lgamma(%a)" print arg
+        | Op_digamma -> fprintf fmt "digamma(%a)" print arg
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with
@@ -155,6 +157,8 @@ module OCamlIntervalPrinter : PrinterType = struct
         | Op_acosh -> fprintf fmt "acosh_I(%a)" print arg
         | Op_atanh -> fprintf fmt "atanh_I(%a)" print arg
         | Op_floor_power2 -> fprintf fmt "floor_power2_I(%a)" print arg
+        | Op_lgamma -> fprintf fmt "lgamma_I(%a)" print arg
+        | Op_digamma -> fprintf fmt "digamma_I(%a)" print arg
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with
@@ -226,6 +230,9 @@ module FPCorePrinter : PrinterType = struct
         | Op_atanh -> fprintf fmt "(atanh %a)" print arg
         (* Non-standard FPCore extension: p2 *)
         | Op_floor_power2 -> fprintf fmt "(p2 %a)" print arg
+        (* lgamma is a standard FPCore/FPBench math operator *)
+        | Op_lgamma -> fprintf fmt "(lgamma %a)" print arg
+        | Op_digamma -> failwith "FPCore: digamma has no standard FPCore operator"
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with
@@ -287,6 +294,8 @@ module RacketIntervalPrinter : PrinterType = struct
         | Op_acosh -> fprintf fmt "(iacosh %a)" print arg
         | Op_atanh -> fprintf fmt "(iatanh %a)" print arg
         | Op_floor_power2 -> fprintf fmt "(ifloor-pow2 %a)" print arg
+        | Op_lgamma -> fprintf fmt "(ilgamma %a)" print arg
+        | Op_digamma -> failwith "Racket: digamma is not supported (no verified interval primitive)"
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with
@@ -343,6 +352,10 @@ module CPrinter : PrinterType = struct
         | Op_acosh -> fprintf fmt "acosh(%a)" print arg
         | Op_atanh -> fprintf fmt "atanh(%a)" print arg
         | Op_floor_power2 -> fprintf fmt "floor_power2(%a)" print arg
+        (* glibc/libm lgamma(double), declared in <math.h> (already assumed
+           included, as with the other special functions printed above) *)
+        | Op_lgamma -> fprintf fmt "lgamma(%a)" print arg
+        | Op_digamma -> failwith "C: digamma has no standard libm primitive"
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with
@@ -397,6 +410,8 @@ module OCamlFloatPrinter : PrinterType = struct
         | Op_acosh -> fprintf fmt "acosh(%a)" print arg
         | Op_atanh -> fprintf fmt "atanh(%a)" print arg
         | Op_floor_power2 -> fprintf fmt "floor_power2(%a)" print arg
+        | Op_lgamma -> fprintf fmt "lgamma(%a)" print arg
+        | Op_digamma -> fprintf fmt "digamma(%a)" print arg
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with
@@ -502,6 +517,8 @@ module GelpiaPrinter : PrinterType = struct
         | Op_acosh -> fprintf fmt "acosh(%a)" print arg
         | Op_atanh -> fprintf fmt "atanh(%a)" print arg
         | Op_floor_power2 -> fprintf fmt "floor_power2(%a)" print arg
+        | Op_lgamma -> failwith "Gelpia: lgamma is not a supported Gelpia primitive"
+        | Op_digamma -> failwith "Gelpia: digamma is not a supported Gelpia primitive"
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with
@@ -561,6 +578,8 @@ module JavaScriptPrinter : PrinterType = struct
         | Op_acosh -> fprintf fmt "Math.acosh(%a)" print arg
         | Op_atanh -> fprintf fmt "Math.atanh(%a)" print arg
         | Op_floor_power2 -> fprintf fmt "M.floor_power2(%a)" print arg
+        | Op_lgamma -> failwith "JavaScript: lgamma has no standard Math primitive"
+        | Op_digamma -> failwith "JavaScript: digamma has no standard Math primitive"
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with
@@ -625,6 +644,8 @@ module JavaScriptIntervalPrinter : PrinterType = struct
         | Op_acosh -> fprintf fmt "M.acoshI(%a)" print arg
         | Op_atanh -> fprintf fmt "M.atanhI(%a)" print arg
         | Op_floor_power2 -> fprintf fmt "M.floor_power2I(%a)" print arg
+        | Op_lgamma -> failwith "JavaScriptInterval: lgamma is not implemented in the M interval library"
+        | Op_digamma -> failwith "JavaScriptInterval: digamma is not implemented in the M interval library"
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with

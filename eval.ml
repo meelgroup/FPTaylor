@@ -47,6 +47,8 @@ let eval_float_expr vars =
         | Op_acosh -> Func.acosh x
         | Op_atanh -> Func.atanh x
         | Op_floor_power2 -> Func.floor_power2 x
+        | Op_lgamma -> Func.lgamma x
+        | Op_digamma -> Func.digamma x
       end
     | Bin_op (op, arg1, arg2) ->
       begin
@@ -169,6 +171,8 @@ let eval_interval_expr ?cache vars =
       | Op_acosh -> Func.acosh_I x
       | Op_atanh -> Func.atanh_I x
       | Op_floor_power2 -> Func.floor_power2_I x
+      | Op_lgamma -> Func.lgamma_I x
+      | Op_digamma -> Func.digamma_I x
     end
   | Bin_op (op, arg1, arg2) ->
     begin

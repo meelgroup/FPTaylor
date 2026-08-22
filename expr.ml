@@ -31,6 +31,8 @@ type u_op_type =
   | Op_acosh
   | Op_atanh
   | Op_floor_power2
+  | Op_lgamma
+  | Op_digamma
 
 type bin_op_type =
   | Op_max
@@ -89,6 +91,8 @@ let mk_const c = Const c and
   mk_asinh a = U_op (Op_asinh, a) and
   mk_acosh a = U_op (Op_acosh, a) and
   mk_atanh a = U_op (Op_atanh, a) and
+  mk_lgamma a = U_op (Op_lgamma, a) and
+  mk_digamma a = U_op (Op_digamma, a) and
   mk_max a b = Bin_op (Op_max, a, b) and
   mk_min a b = Bin_op (Op_min, a, b) and
   mk_add a b = Bin_op (Op_add, a, b) and
@@ -140,6 +144,8 @@ let u_op_name = function
   | Op_acosh -> "acosh"
   | Op_atanh -> "atanh"
   | Op_floor_power2 -> "floor_power2"
+  | Op_lgamma -> "lgamma"
+  | Op_digamma -> "digamma"
 
 let bin_op_name = function
   | Op_max -> "max"
