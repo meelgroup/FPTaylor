@@ -113,6 +113,6 @@ jobs:
     - name: Regression tests
       run: |
         cd scripts
-        opam exec -- python run_tests.py ../tests/basic
-        opam exec -- python run_tests.py ../tests/micro
-        opam exec -- python run_tests.py ../tests/core
+        opam exec -- python run_tests.py --rel-tol 1e-12 ../tests/basic
+        opam exec -- python run_tests.py --rel-tol 1e-12 ../tests/micro
+        opam exec -- python run_tests.py --rel-tol 1e-12 ../tests/core

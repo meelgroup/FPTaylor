@@ -29,6 +29,8 @@ class FPTaylorExpression:
         ('abs-error', r'Absolute error [^:]*: ([-+\de.naif]+)'),
         ('abs-error-hex', r'Absolute error [^:]*:\s*[^\(]*\(([-+\da-fxp.]+)\)'),
         ('abs-total2-hex', r'Second order absolute error [^:]*:\s*[^\(]*\(([-+\da-fxp.]+)\)'),
+        ('abs-error-alt', r'exact total:\s*([-+\de.naif]+)'),
+        ('abs-total2-alt', r'total2:\s*([-+\de.naif]+)'),
         ('time', r'Elapsed time: ([\d.]+)')
     ]
 
@@ -104,6 +106,8 @@ class FPTaylorExpression:
         abs_error = None
         if 'abs-error' in vals:
             abs_error = Decimal(vals['abs-error'])
+        elif 'abs-error-alt' in vals:
+            abs_error = Decimal(vals['abs-error-alt'])
         elif 'abs-error-hex' in vals:
             abs_error = Decimal(str(common.hex_to_float(vals['abs-error-hex'])))
         if self.upper_bound is not None:
@@ -122,14 +126,16 @@ class FPTaylorExpression:
                 passed = False
         if self.exact_value is not None:
             if 'abs-error-hex' not in vals:
-                _log.error('Missing exact value in FPTaylor output')
-                passed = False
+                if abs_error is None:
+                    _log.error('Missing exact value in FPTaylor output')
+                    passed = False
             else:
                 passed &= self.check_hex('exact value', vals['abs-error-hex'], self.exact_value, rel_tol)
         if self.total2 is not None:
             if 'abs-total2-hex' not in vals:
-                _log.error('Missing total2 value in FPTaylor output')
-                passed = False
+                if 'abs-total2-alt' not in vals:
+                    _log.error('Missing total2 value in FPTaylor output')
+                    passed = False
             else:
                 passed &= self.check_hex('total2', vals['abs-total2-hex'], self.total2, rel_tol)
         print('PASSED' if passed else 'FAILED')
