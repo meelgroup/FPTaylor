@@ -26,9 +26,9 @@ class Config:
 
 class FPTaylorExpression:
     patterns = [
-        ('abs-error', r'Absolute error [^:]*: ([-+\de.]+)'),
-        ('abs-error-hex', r'Absolute error [^:]*: [^\(]* \(([-+\da-fxp.]+)\)'),
-        ('abs-total2-hex', r'Second order absolute error [^:]*: [^\(]* \(([-+\da-fxp.]+)\)'),
+        ('abs-error', r'Absolute error [^:]*: ([-+\de.naif]+)'),
+        ('abs-error-hex', r'Absolute error [^:]*:\s*[^\(]*\(([-+\da-fxp.]+)\)'),
+        ('abs-total2-hex', r'Second order absolute error [^:]*:\s*[^\(]*\(([-+\da-fxp.]+)\)'),
         ('time', r'Elapsed time: ([\d.]+)')
     ]
 
@@ -101,20 +101,37 @@ class FPTaylorExpression:
         print(f'  {self.name}: ', end='', flush=True)
         vals = self.parse_output(self.select_output_lines(output))
         passed = True
+        abs_error = None
+        if 'abs-error' in vals:
+            abs_error = Decimal(vals['abs-error'])
+        elif 'abs-error-hex' in vals:
+            abs_error = Decimal(str(common.hex_to_float(vals['abs-error-hex'])))
         if self.upper_bound is not None:
-            v = Decimal(vals['abs-error'])
-            if v > Decimal(self.upper_bound):
-                _log.error(f'Incorrect upper bound: actual = {v} > expected = {self.upper_bound}')
+            if abs_error is None:
+                _log.error('Missing absolute error in FPTaylor output')
+                passed = False
+            elif abs_error > Decimal(self.upper_bound):
+                _log.error(f'Incorrect upper bound: actual = {abs_error} > expected = {self.upper_bound}')
                 passed = False
         if self.lower_bound is not None:
-            v = Decimal(vals['abs-error'])
-            if v < Decimal(self.lower_bound):
-                _log.error(f'Incorrect lower bound: actual = {v} < expected = {self.lower_bound}')
+            if abs_error is None:
+                _log.error('Missing absolute error in FPTaylor output')
+                passed = False
+            elif abs_error < Decimal(self.lower_bound):
+                _log.error(f'Incorrect lower bound: actual = {abs_error} < expected = {self.lower_bound}')
                 passed = False
         if self.exact_value is not None:
-            passed &= self.check_hex('exact value', vals['abs-error-hex'], self.exact_value, rel_tol)
+            if 'abs-error-hex' not in vals:
+                _log.error('Missing exact value in FPTaylor output')
+                passed = False
+            else:
+                passed &= self.check_hex('exact value', vals['abs-error-hex'], self.exact_value, rel_tol)
         if self.total2 is not None:
-            passed &= self.check_hex('total2', vals['abs-total2-hex'], self.total2, rel_tol)
+            if 'abs-total2-hex' not in vals:
+                _log.error('Missing total2 value in FPTaylor output')
+                passed = False
+            else:
+                passed &= self.check_hex('total2', vals['abs-total2-hex'], self.total2, rel_tol)
         print('PASSED' if passed else 'FAILED')
         return passed
 
