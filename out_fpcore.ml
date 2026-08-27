@@ -143,6 +143,9 @@ let rec export_expr types ctx_rnd fmt expr =
         | Op_atanh -> fprintf fmt "(atanh %a)" print arg
         (* Non-standard FPCore extension: p2 *)
         | Op_floor_power2 -> fprintf fmt "(p2 %a)" print arg
+        (* lgamma is a standard FPCore/FPBench math operator *)
+        | Op_lgamma -> fprintf fmt "(lgamma %a)" print arg
+        | Op_digamma -> failwith "FPCore: digamma has no standard FPCore operator"
       end
     | Bin_op (op, arg1, arg2) -> begin
         match op with

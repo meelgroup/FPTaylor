@@ -63,6 +63,8 @@ let rec eval_expr' refs arr = function
     | Op_acosh -> Func.acosh_I x
     | Op_atanh -> Func.atanh_I x
     | Op_floor_power2 -> Func.floor_power2_I x
+    | Op_lgamma -> Func.lgamma_I x
+    | Op_digamma -> Func.digamma_I x
   end
 | Bin_op' (op, arg1, arg2) ->
   begin

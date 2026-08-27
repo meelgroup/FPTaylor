@@ -30,6 +30,8 @@ type u_op_type =
   | Op_acosh
   | Op_atanh
   | Op_floor_power2
+  | Op_lgamma
+  | Op_digamma
 
 type bin_op_type =
   | Op_max
@@ -88,6 +90,8 @@ val mk_tanh : expr -> expr
 val mk_asinh : expr -> expr
 val mk_acosh : expr -> expr
 val mk_atanh : expr -> expr
+val mk_lgamma : expr -> expr
+val mk_digamma : expr -> expr
 
 val mk_max : expr -> expr -> expr
 val mk_min : expr -> expr -> expr

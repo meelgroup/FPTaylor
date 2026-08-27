@@ -82,6 +82,8 @@
       "argtanh", ATANH;
       "sub2", SUB2;
       "floor_power2", FLOOR_POWER2;
+      "lgamma", LGAMMA;
+      "digamma", DIGAMMA;
       "interval", INTERVAL;
     ] in
   fun str ->

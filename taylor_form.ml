@@ -1013,6 +1013,43 @@ let atanh_form cs f =
          @ [mk_float_const m3, m3_err];
   }
 
+(* lgamma:
+   f' = digamma, f'' = trigamma.
+   trigamma is monotonic (decreasing) on (0, infinity), so Func.trigamma_I
+   gives a tight rigorous enclosure of trigamma over the interval xi;
+   0.5 * (sup |trigamma(xi)|) bounds the Lagrange remainder term, exactly as
+   inv_form/sin_form above bound theirs with their own second derivatives.
+   Written out longhand (0.9.3 predates the uop_form combinator this was
+   originally built on) with no Proof.add_*_step call: the develop-branch
+   version this was ported from never had proof-recording support for
+   lgamma either (uop_form itself doesn't call into Proof at all), so
+   --proof-record does not cover lgamma-containing expressions here --
+   only the ordinary numeric bound (the only thing this codebase's
+   templates use) is provided. *)
+let lgamma_form cs f =
+  Log.report `Debug "lgamma_form";
+  let x0_int = estimate_expr cs f.v0 in
+  let x1 = abs_eval_v1 cs f.v1 in
+  let s1 = Lib.itlist (fun (x,x_exp) s ->
+      let eps = get_eps x_exp in
+      let xi = {low = -. eps; high = eps} in
+      (xi *$. x) +$ s) x1 zero_I in
+  let xi = x0_int +$ s1 in
+  let b_high = 0.5 *^ (abs_I (Func.trigamma_I xi)).high in
+  let b_high = make_stronger b_high in
+  let m2, m2_exp = sum2_high x1 x1 in
+  let m2 = make_stronger m2 in
+  let m3 = b_high *^ m2 in
+  let m3 = make_stronger m3 in
+  let form_index = next_form_index() in
+  let m3_err = mk_err_var (-1) m2_exp in
+  {
+    form_index = form_index;
+    v0 = mk_lgamma f.v0;
+    v1 = List.map (fun (e, err) -> mk_mul (mk_digamma f.v0) e, err) f.v1
+         @ [mk_float_const m3, m3_err];
+  }
+
 (* absolute value *)
 (* |x + e| = |x| + abs_err(t, x) * e where
    t is an upper bound of |e| and
@@ -1155,7 +1192,8 @@ let build_form (cs : constraints) =
         | Op_asinh -> asinh_form cs arg_form
         | Op_acosh -> acosh_form cs arg_form
         | Op_atanh -> atanh_form cs arg_form
-        | _ -> failwith 
+        | Op_lgamma -> lgamma_form cs arg_form
+        | _ -> failwith
                  ("build_form: unsupported unary operation " ^ u_op_name op)
       end
     | Bin_op (op, arg1, arg2) ->

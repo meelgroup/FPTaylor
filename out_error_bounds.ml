@@ -86,6 +86,12 @@ let translate_mpfr env =
             | Op_log -> fprintf fmt "  mpfr_log(%s, %s, MPFR_RNDN);@." name arg_name
             | Op_sin -> fprintf fmt "  mpfr_sin(%s, %s, MPFR_RNDN);@." name arg_name
             | Op_cos -> fprintf fmt "  mpfr_cos(%s, %s, MPFR_RNDN);@." name arg_name
+            (* mpfr_lngamma computes log|Gamma(x)| without the extra sign-out
+               parameter that mpfr_lgamma requires; equivalent to our lgamma
+               for the x > 0 domain this tool restricts to. *)
+            | Op_lgamma -> fprintf fmt "  mpfr_lngamma(%s, %s, MPFR_RNDN);@." name arg_name
+            (* mpfr_digamma has been available since MPFR 3.0.0 (2010). *)
+            | Op_digamma -> fprintf fmt "  mpfr_digamma(%s, %s, MPFR_RNDN);@." name arg_name
             | _ -> failwith ("translate_mpfr: unsupported unary operation: " ^ u_op_name op)
           end
         | Bin_op (op, arg1, arg2) -> begin
@@ -134,6 +140,8 @@ let translate_mpfi env =
             | Op_sin -> fprintf fmt "  mpfi_sin(%s, %s);@." name arg_name
             | Op_cos -> fprintf fmt "  mpfi_cos(%s, %s);@." name arg_name
             | Op_floor_power2 -> fprintf fmt "  mpfi_floor_power2(%s, %s);@." name arg_name
+            | Op_lgamma -> failwith "translate_mpfi: MPFI has no lgamma primitive (mpfi_lgamma does not exist)"
+            | Op_digamma -> failwith "translate_mpfi: MPFI has no digamma primitive"
             | _ -> failwith ("translate_mpfi: unsupported unary operation: " ^ u_op_name op)
           end
         | Bin_op (op, arg1, arg2) -> begin
@@ -179,6 +187,8 @@ let translate_double env =
             | Op_log -> fprintf fmt "  double %s = log(%s);@." name arg_name
             | Op_sin -> fprintf fmt "  double %s = sin(%s);@." name arg_name
             | Op_cos -> fprintf fmt "  double %s = cos(%s);@." name arg_name
+            | Op_lgamma -> fprintf fmt "  double %s = lgamma(%s);@." name arg_name
+            | Op_digamma -> failwith "translate_double: digamma has no standard libm primitive"
             | _ -> failwith ("translate_double: unsupported unary operation: " ^ u_op_name op)
           end
         | Bin_op (op, arg1, arg2) -> begin
@@ -216,6 +226,8 @@ let translate_single env =
             | Op_log -> fprintf fmt "  float %s = logf(%s);@." name arg_name
             | Op_sin -> fprintf fmt "  float %s = sinf(%s);@." name arg_name
             | Op_cos -> fprintf fmt "  float %s = cosf(%s);@." name arg_name
+            | Op_lgamma -> fprintf fmt "  float %s = lgammaf(%s);@." name arg_name
+            | Op_digamma -> failwith "translate_single: digamma has no standard libm primitive"
             | _ -> failwith ("translate_single: unsupported unary operation: " ^ u_op_name op)
           end
         | Bin_op (op, arg1, arg2) -> begin
