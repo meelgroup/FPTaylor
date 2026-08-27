@@ -13,12 +13,14 @@
 needs "lib.hl";;
 needs "ipow.hl";;
 needs "rounding.hl";;
+needs "real_gamma.hl";;
 
 module Tform = struct
 
 open Lib;;
 open Ipow;;
 open Rounding;;
+open Real_gamma;;
 
 prioritize_real();;
 
@@ -1141,6 +1143,39 @@ let approx_log = prove
        REPEAT STRIP_TAC THEN LET_TAC THEN
 	 FIRST_X_ASSUM (MP_TAC o SPECL[`x:real^N`; `y:real`]) THEN ASM_REWRITE_TAC[] THEN
 	 SIMP_TAC[diff2_log; REAL_ARITH `abs (--a / &2) = abs (a / &2)`];
+       ALL_TAC
+     ] THEN
+     REWRITE_TAC[]);;
+
+(* --------------------------- *)
+(* lgamma                      *)
+(* --------------------------- *)
+
+let approx_lgamma = prove
+  (`!s h t m1 m2 e2 b m3.
+     approx s h t /\
+     (!x. x IN s ==> abs (tform_f1 t x) <= m1 /\ abs (tform_f1 t x pow 2) <= m2 * e2) /\
+     (!x y. x IN s /\ abs y <= m1 ==> abs ((inv (tform_f0 t x + y) +
+                                                  inv ((tform_f0 t x + y) pow 2)) / &2) <= b /\
+                                          &0 < tform_f0 t x + y) /\
+       &0 < b /\ &0 <= m2 /\ &0 <= e2 /\ b * m2 <= m3
+     ==> approx s (\x:real^N. lgamma (h x))
+       (mk_tform ((\x. lgamma (tform_f0 t x)),
+		  (mul_f1 (\x. digamma (tform_f0 t x)) (tform_list t) ++
+		     [(\x. m3),
+		      (\x. (lgamma (h x) - lgamma (tform_f0 t x) -
+			      digamma (tform_f0 t x) * tform_f1 t x) / m3),
+		      e2])))`,
+   REPEAT STRIP_TAC THEN
+     MP_TAC ((SPEC_ALL o SPECL[`lgamma`; `digamma`; `trigamma`]) approx_taylor2) THEN
+     ASM_REWRITE_TAC[] THEN ANTS_TAC THENL [
+       REPEAT STRIP_TAC THEN LET_TAC THEN
+	 FIRST_X_ASSUM (MP_TAC o SPECL[`x:real^N`; `y:real`]) THEN ASM_REWRITE_TAC[] THEN
+	 STRIP_TAC THEN ASM_SIMP_TAC[diff2_lgamma] THEN
+	 MATCH_MP_TAC REAL_LE_TRANS THEN
+	 EXISTS_TAC `abs ((inv (tform_f0 (t:(N)tform) x + y) +
+			    inv ((tform_f0 t x + y) pow 2)) / &2)` THEN
+	 ASM_SIMP_TAC[trigamma_half_bound_pos];
        ALL_TAC
      ] THEN
      REWRITE_TAC[]);;

@@ -45,6 +45,7 @@ type proof_op =
   | Proof_atn
   | Proof_exp
   | Proof_log
+  | Proof_lgamma
 
 type proof_opt_type =
   | Proof_opt_approx

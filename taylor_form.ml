@@ -1014,18 +1014,8 @@ let atanh_form cs f =
   }
 
 (* lgamma:
-   f' = digamma, f'' = trigamma.
-   trigamma is monotonic (decreasing) on (0, infinity), so Func.trigamma_I
-   gives a tight rigorous enclosure of trigamma over the interval xi;
-   0.5 * (sup |trigamma(xi)|) bounds the Lagrange remainder term, exactly as
-   inv_form/sin_form above bound theirs with their own second derivatives.
-   Written out longhand (0.9.3 predates the uop_form combinator this was
-   originally built on) with no Proof.add_*_step call: the develop-branch
-   version this was ported from never had proof-recording support for
-   lgamma either (uop_form itself doesn't call into Proof at all), so
-   --proof-record does not cover lgamma-containing expressions here --
-   only the ordinary numeric bound (the only thing this codebase's
-   templates use) is provided. *)
+   f' = digamma, f'' = trigamma.  In proof mode the remainder interval is
+   widened to x0 + [-m1,m1], matching the HOL obligation abs y <= m1. *)
 let lgamma_form cs f =
   Log.report `Debug "lgamma_form";
   let x0_int = estimate_expr cs f.v0 in
@@ -1034,8 +1024,18 @@ let lgamma_form cs f =
       let eps = get_eps x_exp in
       let xi = {low = -. eps; high = eps} in
       (xi *$. x) +$ s) x1 zero_I in
-  let xi = x0_int +$ s1 in
-  let b_high = 0.5 *^ (abs_I (Func.trigamma_I xi)).high in
+  let m1 = make_stronger (abs_I s1).high in
+  let xi =
+    if Config.proof_flag () then
+      x0_int +$ {low = -.m1; high = m1}
+    else
+      x0_int +$ s1 in
+  let d =
+    if Config.proof_flag () then
+      inv_I xi +$ inv_I (pow_I_i xi 2)
+    else
+      Func.trigamma_I xi in
+  let b_high = 0.5 *^ (abs_I d).high in
   let b_high = make_stronger b_high in
   let m2, m2_exp = sum2_high x1 x1 in
   let m2 = make_stronger m2 in
@@ -1043,6 +1043,8 @@ let lgamma_form cs f =
   let m3 = make_stronger m3 in
   let form_index = next_form_index() in
   let m3_err = mk_err_var (-1) m2_exp in
+  let _ = Proof.add_lgamma_step form_index f.form_index
+      m1 m2 m2_exp b_high m3 m3_err.proof_index in
   {
     form_index = form_index;
     v0 = mk_lgamma f.v0;

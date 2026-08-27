@@ -123,6 +123,15 @@ let rule_log dom m1 m2 e2 b m3 err_indices arg =
   let th0 = build_log_tform m1_tm m2_tm e2_tm b_tm m3_tm err_indices arg in
     prove_hyps dom [arg] th0;;
 
+let rule_lgamma dom m1 m2 e2 b m3 err_indices arg =
+  let m1_tm = mk_bin_float m1 and
+      m2_tm = mk_bin_float m2 and
+      e2_tm = mk_ipow2 (Int e2) and
+      b_tm = mk_bin_float b and
+      m3_tm = mk_bin_float m3 in
+  let th0 = build_lgamma_tform m1_tm m2_tm e2_tm b_tm m3_tm err_indices arg in
+    prove_hyps dom [arg] th0;;
+
 let rule_atn dom m1 m2 e2 b m3 err_indices arg =
   let m1_tm = mk_bin_float m1 and
       m2_tm = mk_bin_float m2 and

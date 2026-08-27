@@ -42,6 +42,7 @@ type proof_op =
   | Proof_atn
   | Proof_exp
   | Proof_log
+  | Proof_lgamma
 
 type proof_opt_type =
   | Proof_opt_approx
@@ -77,4 +78,3 @@ val proof : proof
 val save_proof : string -> string -> unit
 
 val load_proof : string -> proof
-

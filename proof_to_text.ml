@@ -116,27 +116,36 @@ let proof_to_text fmt =
 	      let arg = nth arg_ths 0 in
 	      p (Format.sprintf "rule_cos dom %s %s (%d) %s %s %s %s"
 		   m1 m2 e2 b m3 err_indices arg)
-	    | Proof_exp ->
-	      let m1 = string_of_float (nth args.bounds 0) in
-	      let m2 = string_of_float (nth args.bounds 1) in
-	      let e2 = int_of_float (nth args.bounds 2) in
-	      let b = string_of_float (nth args.bounds 3) in
-	      let m3 = string_of_float (nth args.bounds 4) in
-	      let arg = nth arg_ths 0 in
-	      p (Format.sprintf "rule_exp dom %s %s (%d) %s %s %s %s"
-		   m1 m2 e2 b m3 err_indices arg)
-	    | Proof_log ->
-	      let m1 = string_of_float (nth args.bounds 0) in
-	      let m2 = string_of_float (nth args.bounds 1) in
-	      let e2 = int_of_float (nth args.bounds 2) in
-	      let b = string_of_float (nth args.bounds 3) in
-	      let m3 = string_of_float (nth args.bounds 4) in
-	      let arg = nth arg_ths 0 in
-	      p (Format.sprintf "rule_log dom %s %s (%d) %s %s %s %s"
-		   m1 m2 e2 b m3 err_indices arg)
-	    | Proof_atn ->
-	      let m1 = string_of_float (nth args.bounds 0) in
-	      let m2 = string_of_float (nth args.bounds 1) in
+		    | Proof_exp ->
+		      let m1 = string_of_float (nth args.bounds 0) in
+		      let m2 = string_of_float (nth args.bounds 1) in
+		      let e2 = int_of_float (nth args.bounds 2) in
+		      let b = string_of_float (nth args.bounds 3) in
+		      let m3 = string_of_float (nth args.bounds 4) in
+		      let arg = nth arg_ths 0 in
+		      p (Format.sprintf "rule_exp dom %s %s (%d) %s %s %s %s"
+			   m1 m2 e2 b m3 err_indices arg)
+		    | Proof_log ->
+		      let m1 = string_of_float (nth args.bounds 0) in
+		      let m2 = string_of_float (nth args.bounds 1) in
+		      let e2 = int_of_float (nth args.bounds 2) in
+		      let b = string_of_float (nth args.bounds 3) in
+		      let m3 = string_of_float (nth args.bounds 4) in
+		      let arg = nth arg_ths 0 in
+		      p (Format.sprintf "rule_log dom %s %s (%d) %s %s %s %s"
+			   m1 m2 e2 b m3 err_indices arg)
+		    | Proof_lgamma ->
+		      let m1 = string_of_float (nth args.bounds 0) in
+		      let m2 = string_of_float (nth args.bounds 1) in
+		      let e2 = int_of_float (nth args.bounds 2) in
+		      let b = string_of_float (nth args.bounds 3) in
+		      let m3 = string_of_float (nth args.bounds 4) in
+		      let arg = nth arg_ths 0 in
+		      p (Format.sprintf "rule_lgamma dom %s %s (%d) %s %s %s %s"
+			   m1 m2 e2 b m3 err_indices arg)
+		    | Proof_atn ->
+		      let m1 = string_of_float (nth args.bounds 0) in
+		      let m2 = string_of_float (nth args.bounds 1) in
 	      let e2 = int_of_float (nth args.bounds 2) in
 	      let b = string_of_float (nth args.bounds 3) in
 	      let m3 = string_of_float (nth args.bounds 4) in
@@ -169,7 +178,7 @@ let proof_to_text fmt =
     p' ";;"
   in
   fun (pp, proof) ->
-    let steps = sort (fun s1 s2 -> compare s1.step_index s2.step_index) proof.proof_steps in
+    let steps = sort (fun s1 s2 -> Pervasives.compare s1.step_index s2.step_index) proof.proof_steps in
     let last = (nth steps (length steps - 1)).step_index in
     head pp proof.proof_vars;
     p' ""; p' "(* Taylor form theorems *)";

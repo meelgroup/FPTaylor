@@ -1,0 +1,45 @@
+(* ========================================================================== *)
+(*      Real Gamma interface for FPTaylor lgamma certificates                 *)
+(*                                                                            *)
+(*      This file is intentionally not an axiomatic special-function layer.   *)
+(*      It is the import boundary for a real HOL Light Gamma development.     *)
+(* ========================================================================== *)
+
+(* Required exported HOL constants:
+
+     lgamma   : real -> real        meaning log(Gamma x) on x > 0
+     digamma  : real -> real        derivative of lgamma
+     trigamma : real -> real        derivative of digamma
+
+   Required exported theorems:
+
+     diff2_lgamma:
+       |- !x. &0 < x ==>
+            (lgamma has_real_derivative digamma x) (atreal x) /\
+            (digamma has_real_derivative trigamma x) (atreal x)
+
+     trigamma_half_bound_pos:
+       |- !x. &0 < x ==>
+            abs (trigamma x / &2) <=
+            abs ((inv x + inv (x pow 2)) / &2)
+
+   The second theorem is the proof-friendly bound used by FPTaylor's HOL
+   replay.  It follows from the standard series representation
+
+       trigamma x = sum_{n=0}^\infty 1 / (x + n)^2
+
+   together with integral comparison:
+
+       trigamma x <= 1 / x^2 + integral_0^\infty 1 / (x + t)^2 dt
+                  = 1 / x^2 + 1 / x.
+
+   A complete real-Gamma formalization should also provide enough support to
+   discharge final coefficient bounds involving digamma.  The existing
+   FPTaylor HOL interval evaluator knows arithmetic, log, exp, sin, cos, atn,
+   etc.; it does not yet know digamma.  Constant-argument lgamma calls do not
+   need this, but variable-argument lgamma calls do.
+*)
+
+failwith
+  "real_gamma.hl: import or formalize real Gamma/lgamma/digamma/trigamma here; no axioms installed";;
+

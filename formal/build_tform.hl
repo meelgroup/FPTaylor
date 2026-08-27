@@ -419,6 +419,19 @@ let build_log_tform m1_tm m2_tm e2_tm b_tm m3_tm err_indices approx_th =
     hide_e1s false err_indices th4;;
 
 (* --------------------------------------------- *)
+(* Lgamma                                        *)
+(* --------------------------------------------- *)
+
+let build_lgamma_tform m1_tm m2_tm e2_tm b_tm m3_tm err_indices approx_th =
+  let dom_tm, h_tm, t_tm = dest_approx (concl approx_th) in
+  let th0 = ISPECL[dom_tm; h_tm; t_tm; m1_tm; m2_tm; e2_tm; b_tm; m3_tm] approx_lgamma in
+  let th1 = PURE_REWRITE_RULE[GSYM IMP_IMP] th0 in
+  let th2 = MP th1 approx_th in
+  let th3 = UNDISCH_ALL (REWRITE_RULE[f0_mk; list_mk] th2) in
+  let th4 = REWRITE_RULE[mul_f1; MAP; APPEND; f0_mk; list_mk] th3 in
+    hide_e1s false err_indices th4;;
+
+(* --------------------------------------------- *)
 (* Atn                                           *)
 (* --------------------------------------------- *)
 

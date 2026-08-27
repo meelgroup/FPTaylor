@@ -43,6 +43,7 @@ type proof_op =
   | Proof_atn
   | Proof_exp
   | Proof_log
+  | Proof_lgamma
 
 type proof_opt_type =
   | Proof_opt_approx
@@ -91,4 +92,3 @@ let load_proof fname =
   let p : proof = input_value ic in
   let _ = close_in ic in
   p
-

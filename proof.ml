@@ -145,6 +145,11 @@ let add_log_step i arg m1 m2 e2 b m3 m3_index =
   let args = mk_proof_args [arg] [m3_index] [m1; m2; float_of_int e2; b; m3] in
   add_proof_step i op args
 
+let add_lgamma_step i arg m1 m2 e2 b m3 m3_index =
+  let op = Proof_lgamma in
+  let args = mk_proof_args [arg] [m3_index] [m1; m2; float_of_int e2; b; m3] in
+  add_proof_step i op args
+
 let add_opt_approx indices bounds total =
   let opt = Proof_opt_approx in
   add_proof_opt (mk_proof_opt opt indices bounds total)
