@@ -1,45 +1,144 @@
 (* ========================================================================== *)
-(*      Real Gamma interface for FPTaylor lgamma certificates                 *)
-(*                                                                            *)
-(*      This file is intentionally not an axiomatic special-function layer.   *)
-(*      It is the import boundary for a real HOL Light Gamma development.     *)
+(*      Real log-Gamma interface for FPTaylor certificates                    *)
 (* ========================================================================== *)
 
-(* Required exported HOL constants:
+needs "Multivariate/gamma.ml";;
 
-     lgamma   : real -> real        meaning log(Gamma x) on x > 0
-     digamma  : real -> real        derivative of lgamma
-     trigamma : real -> real        derivative of digamma
+module Real_gamma = struct
 
-   Required exported theorems:
+(* HOL Light already calls its complex log-Gamma function [lgamma].  Keep an
+   explicit alias here so that the real-valued FPTaylor function has an
+   unambiguous name. *)
+let complex_lgamma = new_definition
+ `complex_lgamma = (lgamma:complex->complex)`;;
 
-     diff2_lgamma:
-       |- !x. &0 < x ==>
-            (lgamma has_real_derivative digamma x) (atreal x) /\
-            (digamma has_real_derivative trigamma x) (atreal x)
+let real_lgamma = new_definition
+ `real_lgamma = \x. Re(complex_lgamma(Cx x))`;;
 
-     trigamma_half_bound_pos:
-       |- !x. &0 < x ==>
-            abs (trigamma x / &2) <=
-            abs ((inv x + inv (x pow 2)) / &2)
+let digamma = new_definition
+ `digamma = \x. Re(complex_derivative complex_lgamma (Cx x))`;;
 
-   The second theorem is the proof-friendly bound used by FPTaylor's HOL
-   replay.  It follows from the standard series representation
+let trigamma = new_definition
+ `trigamma = \x.
+    Re(complex_derivative (complex_derivative complex_lgamma) (Cx x))`;;
 
-       trigamma x = sum_{n=0}^\infty 1 / (x + n)^2
+(* On the positive real axis this wrapper is the usual real log-Gamma. *)
+let CGAMMA_LGAMMA_POS = prove
+ (`!x. &0 < x ==> Cx(gamma x) = cexp(lgamma(Cx x))`,
+  GEN_TAC THEN DISCH_TAC THEN
+  REWRITE_TAC[CX_GAMMA; CGAMMA_LGAMMA] THEN
+  COND_CASES_TAC THEN ASM_REWRITE_TAC[] THEN
+  FIRST_X_ASSUM(X_CHOOSE_TAC `n:num`) THEN
+  SUBGOAL_THEN `x + &n = &0` ASSUME_TAC THENL
+   [ASM_MESON_TAC[CX_INJ; CX_ADD];
+    UNDISCH_TAC `&0 < x` THEN
+    UNDISCH_TAC `x + &n = &0` THEN
+    MP_TAC(SPEC `n:num` REAL_POS) THEN REAL_ARITH_TAC]);;
 
-   together with integral comparison:
+let REAL_LGAMMA_EQ_LOG_GAMMA = prove
+ (`!x. &0 < x ==> real_lgamma x = log(gamma x)`,
+  GEN_TAC THEN DISCH_TAC THEN
+  REWRITE_TAC[real_lgamma; complex_lgamma] THEN
+  SUBGOAL_THEN `exp(Re(lgamma(Cx x))) = gamma x` MP_TAC THENL
+   [MP_TAC(AP_TERM `norm:complex->real`
+          (MATCH_MP (SPEC `x:real` CGAMMA_LGAMMA_POS)
+                    (ASSUME `&0 < x`))) THEN
+    ASM_SIMP_TAC[NORM_CEXP; COMPLEX_NORM_CX; REAL_ABS_REFL;
+                 GAMMA_POS_LT; REAL_LT_IMP_LE] THEN
+    ASM_MESON_TAC[GAMMA_POS_LT; REAL_LT_IMP_LE; REAL_ABS_REFL];
+    DISCH_THEN(MP_TAC o AP_TERM `log:real->real`) THEN
+    REWRITE_TAC[LOG_EXP]]);;
 
-       trigamma x <= 1 / x^2 + integral_0^\infty 1 / (x + t)^2 dt
-                  = 1 / x^2 + 1 / x.
+(* The open set on which HOL Light's complex log-Gamma is holomorphic.  It is
+   the complex plane cut along the nonpositive real axis. *)
+let complex_lgamma_domain = new_definition
+ `complex_lgamma_domain = {z:complex | Im z = &0 ==> &0 < Re z}`;;
 
-   A complete real-Gamma formalization should also provide enough support to
-   discharge final coefficient bounds involving digamma.  The existing
-   FPTaylor HOL interval evaluator knows arithmetic, log, exp, sin, cos, atn,
-   etc.; it does not yet know digamma.  Constant-argument lgamma calls do not
-   need this, but variable-argument lgamma calls do.
-*)
+let OPEN_COMPLEX_LGAMMA_DOMAIN = prove
+ (`open complex_lgamma_domain`,
+  REWRITE_TAC[complex_lgamma_domain] THEN
+  SUBGOAL_THEN
+   `{z:complex | Im z = &0 ==> &0 < Re z} =
+    (:complex) DIFF ({z | Im z = &0} INTER {z | Re z <= &0})`
+  SUBST1_TAC THENL
+   [REWRITE_TAC[EXTENSION; IN_ELIM_THM; IN_UNIV; IN_DIFF; IN_INTER] THEN
+    REAL_ARITH_TAC;
+    SIMP_TAC[CLOSED_HALFSPACE_RE_LE; GSYM closed;
+             CLOSED_HALFSPACE_IM_EQ; CLOSED_INTER]]);;
 
-failwith
-  "real_gamma.hl: import or formalize real Gamma/lgamma/digamma/trigamma here; no axioms installed";;
+let HOLOMORPHIC_ON_COMPLEX_LGAMMA = prove
+ (`complex_lgamma holomorphic_on complex_lgamma_domain`,
+  REWRITE_TAC[holomorphic_on] THEN
+  X_GEN_TAC `z:complex` THEN
+  REWRITE_TAC[complex_lgamma_domain; IN_ELIM_THM] THEN DISCH_TAC THEN
+  REWRITE_TAC[GSYM complex_differentiable] THEN
+  MATCH_MP_TAC COMPLEX_DIFFERENTIABLE_AT_WITHIN THEN
+  REWRITE_TAC[complex_lgamma] THEN
+  MATCH_MP_TAC COMPLEX_DIFFERENTIABLE_AT_LGAMMA THEN
+  ASM_REWRITE_TAC[]);;
 
+let HOLOMORPHIC_ON_COMPLEX_DIGAMMA = prove
+ (`(complex_derivative complex_lgamma) holomorphic_on
+    complex_lgamma_domain`,
+  MATCH_MP_TAC HOLOMORPHIC_COMPLEX_DERIVATIVE THEN
+  REWRITE_TAC[OPEN_COMPLEX_LGAMMA_DOMAIN;
+              HOLOMORPHIC_ON_COMPLEX_LGAMMA]);;
+
+(* Restricting a complex derivative to the real axis and taking its real part
+   gives the corresponding real derivative.  Unlike
+   HAS_REAL_DERIVATIVE_FROM_COMPLEX_AT, this lemma does not require the complex
+   function to map the entire real axis into the real axis; that matters for
+   log-Gamma because its branch cut contains the nonpositive real axis. *)
+let HAS_REAL_DERIVATIVE_RE_FROM_COMPLEX_AT = prove
+ (`!f f' x.
+     (f has_complex_derivative f') (at (Cx x))
+     ==> ((\y. Re(f(Cx y))) has_real_derivative Re f') (atreal x)`,
+  REPEAT GEN_TAC THEN
+  REWRITE_TAC[HAS_COMPLEX_DERIVATIVE_AT; HAS_REAL_DERIVATIVE_ATREAL] THEN
+  REWRITE_TAC[LIM_AT; REALLIM_ATREAL] THEN
+  MATCH_MP_TAC MONO_FORALL THEN X_GEN_TAC `e:real` THEN
+  ASM_CASES_TAC `&0 < e` THEN ASM_REWRITE_TAC[] THEN
+  MATCH_MP_TAC MONO_EXISTS THEN X_GEN_TAC `d:real` THEN
+  STRIP_TAC THEN ASM_REWRITE_TAC[] THEN X_GEN_TAC `y:real` THEN
+  STRIP_TAC THEN FIRST_X_ASSUM(MP_TAC o SPEC `Cx y`) THEN
+  ASM_REWRITE_TAC[DIST_CX; dist] THEN
+  REWRITE_TAC[GSYM RE_SUB; CX_SUB; GSYM RE_DIV_CX] THEN
+  MESON_TAC[COMPLEX_NORM_GE_RE_IM; REAL_LET_TRANS]);;
+
+let diff2_lgamma = prove
+  (`!x. &0 < x ==>
+        (real_lgamma has_real_derivative digamma x) (atreal x) /\
+        (digamma has_real_derivative trigamma x) (atreal x)`,
+  X_GEN_TAC `x:real` THEN DISCH_TAC THEN
+  REWRITE_TAC[real_lgamma; digamma; trigamma] THEN
+  CONJ_TAC THEN MATCH_MP_TAC HAS_REAL_DERIVATIVE_RE_FROM_COMPLEX_AT THENL
+   [REWRITE_TAC[HAS_COMPLEX_DERIVATIVE_DIFFERENTIABLE] THEN
+    REWRITE_TAC[complex_lgamma] THEN
+    REWRITE_TAC[ETA_AX] THEN
+    MATCH_MP_TAC COMPLEX_DIFFERENTIABLE_AT_LGAMMA THEN
+    ASM_REWRITE_TAC[IM_CX; RE_CX];
+    REWRITE_TAC[ETA_AX; HAS_COMPLEX_DERIVATIVE_DIFFERENTIABLE] THEN
+    MATCH_MP_TAC HOLOMORPHIC_ON_IMP_DIFFERENTIABLE_AT THEN
+    EXISTS_TAC `complex_lgamma_domain` THEN
+    ASM_REWRITE_TAC[HOLOMORPHIC_ON_COMPLEX_DIGAMMA;
+                    OPEN_COMPLEX_LGAMMA_DOMAIN;
+                    complex_lgamma_domain; IN_ELIM_THM; IM_CX; RE_CX]]);;
+
+(* Remaining analytic obligation for certificate replay:
+
+     !x. &0 < x
+         ==> abs(trigamma x / &2) <=
+             abs((inv x + inv(x pow 2)) / &2)
+
+   The intended next step is to identify [trigamma] with
+
+     suminf (\n. inv((x + &n) pow 2))
+
+   and bound the tail by the telescoping majorant
+
+     inv((x + &n) pow 2)
+       <= inv((x + &(n - 1)) * (x + &n))  (1 <= n).
+
+   No axiom is installed for this missing result. *)
+
+end;;
